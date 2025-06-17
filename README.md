@@ -14,12 +14,12 @@
 4. Process all images in source folder and output them in output-folder.
 
 ### Libraries
-<os> or <pathlib> - To work with directories.
-<os> first choice
+os or pathlib - To work with directories.
+os first choice
 
-<PIL>(from <pillow>) - To edit the images
+PIL (from pillow) - To edit the images
 
-<inquirer> or <questionary> - To create terminal based checkbox menus and prompts
+inquirer or questionary - To create terminal based checkbox menus and prompts
 (User friendly UI)
 
 ### Nessesary Functions i need
