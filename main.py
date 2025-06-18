@@ -1,6 +1,6 @@
 # Import the necessary libraries
 import os
-#from pillow import PIL
+from PIL import Image, ImageEnhance
 import questionary
 from pathlib import Path
 import sys
@@ -78,14 +78,99 @@ def get_edit_options():
 
     return edits
 ############################################################################
+# Define funtion to get the output directory
+def get_output_directory():
+    while True:
+        path_str = questionary.text("Please enter path to the directory you want the pictures saved to:").ask()
+        if path_str is None:
+            print("No input provided. Exiting...")
+            sys.exit(0)
+        
+        path = Path(path_str)
+        
+        if path.exists() and not path.is_dir():
+            print("That is not a directory.")
+        else:
+            if not path.exists():
+                create = questionary.confirm(
+                        "That direcory does not exist. Create it?"
+                ).ask()
+
+                if not create:
+                    retry = questionary.select(
+                            "What would you like to do?",
+                            choices =["Try another path", "Quit"]
+                    ).ask()
+
+                    if retry == "Quit":
+                        print("Exiting program...")
+                        sys.exit(0)
+                    continue #retry loop
+
+                path.mkdir(parents=True)
+
+            return path
+######################################################
+# Defining the core engine, image processing:
+def process_images(input_path, output_path, edits):
+    for image_file in input_path.glob("*"):
+        if image_file.suffix.lower() not in [".jpg", ".jpeg", ".png"]:
+            continue #Skip non-image files
+
+        try:
+            image = Image.open(image_file)
+
+            # Apply edits:
+            edited_image = apply_edits(image, edits)
+
+            # Save to output path:
+            output_file = output_path / image_file.name
+            edited_image.save(output_file)
+            print(f"Saved: {output_file.name}")
+
+        except Exception as e:
+            print(f"Failed to process {image_file.name}: {e}")
 
 
+######################################################
+    # Define helper funtion to apply the edits:
+def apply_edits(image, edits):
+        result = image
+
+        if "contrast" in edits:
+            enhancer = ImageEnhance.Contrast(result)
+            result = enhancer.enhance(edits["contrast"])
+
+        if "sharpness" in edits:
+            enhancer = ImageEnhance.Sharpness(result)
+            result = enhancer.enhance(edits["sharpness"])
+
+        if "exposure" in edits:
+            enhancer = ImageEnhance.Brightness(result)
+            result = enhancer.enhance(edits["exposure"])
+
+        if edits.get("grayscale"):
+            result = result.convert("L") #Grayscale
+
+        return result
+
+######################################################
+def main():
+        input_dir = get_input_directory()
+        edits = get_edit_options()
+        output_dir = get_output_directory()
+        process_images(input_dir, output_dir, edits)
+
+#######################################################
 if __name__ == "__main__":
-    #input_path = get_input_directory() - TEST OK
-    #print(f"Selected input directory: {input_path}") - TEST OK
-    #options = get_edit_options() - TEST OK
-    #print("You selected:") - TEST OK
-    #print(options) - TEST OK
+    main()    
+    #output_path = get_output_directory() # TEST OK
+    #print(f"Output directory: {output_path}") # TEST OK
+    #input_path = get_input_directory() # - TEST OK
+    #print(f"Selected input directory: {input_path}") #  - TEST OK
+    #options = get_edit_options() # - TEST OK
+    #print("You selected:") # - TEST OK
+    #print(options) # - TEST OK
 
-
+##############################################
 
